@@ -30,14 +30,6 @@ public interface CallbackLogService extends IService<CallbackLog> {
     CallbackLog getLatestByClickId(String clickId);
 
     /**
-     * 重试次数 +1。
-     *
-     * @param id 日志主键
-     * @return 是否更新成功
-     */
-    boolean incrementRetryCount(Long id);
-
-    /**
      * 更新回调结果状态与错误信息。
      *
      * @param id       日志主键

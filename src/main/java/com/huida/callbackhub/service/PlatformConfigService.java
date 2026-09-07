@@ -10,27 +10,27 @@ import java.util.List;
 public interface PlatformConfigService extends IService<PlatformConfig> {
 
     /**
-     * 根据主键查询（带缓存）
+     * 根据主键查询
      * @param id 主键
      * @return 平台配置
      */
     PlatformConfig getConfigById(Long id);
 
     /**
-     * 根据平台编码查询（网关回调核心查询入口，带缓存）
+     * 根据平台编码查询（网关回调核心查询入口）
      * @param platformCode 平台编码：douyin / kuaishou / chuanshanjia
      * @return 平台配置
      */
     PlatformConfig getByPlatformCode(String platformCode);
 
     /**
-     * 查询全部平台配置（带缓存）
+     * 查询全部平台配置
      * @return 全部列表
      */
     List<PlatformConfig> listAll();
 
     /**
-     * 查询已启用的平台列表（带缓存）
+     * 查询已启用的平台列表
      * @return 启用列表
      */
     List<PlatformConfig> listEnabled();

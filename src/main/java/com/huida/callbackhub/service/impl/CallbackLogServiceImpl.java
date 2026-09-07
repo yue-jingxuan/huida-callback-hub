@@ -14,8 +14,7 @@ import java.util.List;
 /**
  * 回调请求日志业务实现。
  * <p>
- * 回调日志不做 Redis 缓存，所有读写直接落库；
- * 重试次数采用 SQL 自增（{@code retry_count = retry_count + 1}），避免并发重试时读改写丢更新。
+ * 回调日志不做 Redis 缓存，所有读写直接落库。
  * </p>
  */
 @Slf4j
@@ -53,25 +52,6 @@ public class CallbackLogServiceImpl extends ServiceImpl<CallbackLogMapper, Callb
                 .orderByDesc(CallbackLog::getId)
                 .last("LIMIT 1")
                 .one();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean incrementRetryCount(Long id) {
-        if (id == null) {
-            return false;
-        }
-        // SQL 层自增，并发安全；retry_count 为 NULL 时兜底为 0
-        boolean updated = lambdaUpdate()
-                .eq(CallbackLog::getId, id)
-                .setSql("retry_count = IFNULL(retry_count, 0) + 1")
-                .update();
-        if (updated) {
-            log.debug("回调日志重试次数+1成功, id={}", id);
-        }
-        return updated;
     }
 
     /**

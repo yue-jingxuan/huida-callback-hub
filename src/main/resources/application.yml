@@ -7,6 +7,12 @@ server:
   # 服务监听端口
   port: 8080
 
+# -------------------- 日志配置 --------------------
+logging:
+  pattern:
+    # 控制台日志格式：携带 MDC 中的 traceId，便于回调链路追踪
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n"
+
 spring:
   application:
     # 应用名称
@@ -15,8 +21,8 @@ spring:
   # -------------------- MySQL 数据源 --------------------
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # 数据库连接地址，库名默认为 callback_hub，可通过环境变量覆盖
-    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:huida_callback_hub}?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
+    # 数据库连接地址，库名默认为 huida_callback_hub，可通过环境变量覆盖
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:huida_callback_hub}?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true&tinyInt1isBit=false
     # 数据库账号（占位符，请替换为实际账号或通过环境变量 MYSQL_USERNAME 注入）
     username: ${MYSQL_USERNAME:root}
     # 数据库密码（占位符，请替换为实际密码或通过环境变量 MYSQL_PASSWORD 注入）
@@ -52,6 +58,8 @@ spring:
       timeout: 5000ms
       lettuce:
         pool:
+          # 存在 commons-pool2 时启用连接池
+          enabled: true
           # 连接池最大连接数（负数表示无限制）
           max-active: 16
           # 连接池最大空闲连接
@@ -63,10 +71,8 @@ spring:
 
 # -------------------- MyBatis-Plus --------------------
 mybatis-plus:
-  # Mapper XML 扫描路径
-  mapper-locations: classpath*:/mapper/**/*.xml
   # 实体类包路径
-  type-aliases-package: com.huida.callbackhub.**.entity
+  type-aliases-package: com.huida.callbackhub.entity
   configuration:
     # 开启下划线转驼峰命名映射（user_id -> userId）
     map-underscore-to-camel-case: true
@@ -79,16 +85,22 @@ mybatis-plus:
     db-config:
       # 主键策略：数据库自增
       id-type: auto
-      # 逻辑删除字段值
-      logic-delete-value: 1
-      logic-not-delete-value: 0
 
 huida:
   callback:
-    cache:
-      # 单条id/platformCode缓存过期时长(秒)，30分钟
-      single-ttl: 1800
-      # 列表缓存过期时长(秒)，8分钟
-      list-ttl: 480
-      # 空值占位缓存过期时长(秒)，3分钟，防御缓存穿透
-      null-ttl: 180
+    # -------------------- 异步转发线程池 --------------------
+    async:
+      # 核心线程数
+      core-pool-size: 8
+      # 最大线程数
+      max-pool-size: 32
+      # 等待队列容量
+      queue-capacity: 1000
+      # 非核心线程空闲存活时间(秒)
+      keep-alive-seconds: 60
+    # -------------------- 转发HTTP超时 --------------------
+    forward:
+      # 建立连接超时时间(毫秒)
+      connect-timeout: 3000
+      # 读取响应超时时间(毫秒)
+      read-timeout: 5000
